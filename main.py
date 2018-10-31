@@ -7,83 +7,86 @@ app.config['DEBUG'] = True
 
 @app.route("/")
 def index():
-    return render_template("signup.hml")
+    return render_template("signup.html")
     
-    #signup_form.format(username="", name_error="", pw="", pw_error="", ver_pw="", ver_pw_err="", email="", em_err="")
-
-@app.route("/", methods=["POST"])
+@app.route("/signup.html", methods=["POST"])
 def validate_form():
     
     username = request.form['username'] 
-    pw = request.form['pw']
-    ver_pw = request.form['ver_pw']
+    pw = request.form['password']
+    ver_pw = request.form['verify']
     email = request.form['email']
 
-    name_error=""
-    pw_error=""
+    name_error = ""
+    pw_error = ""
     ver_pw_error = ""
     em_err = ""
 
     #Verify username
+    if username == "":
+        name_error = "Please enter username"
+        username = ""
+        return render_template("signup.html", username=username, name_error=name_error)
+
+    if len(username) < 3 or len(username) > 20:
+        name_error = "Username must be between 3 and 20 characters"
+        return render_template("signup.html", username=username, name_error=name_error)
+    
     for char in username:
         if char == " ":
             name_error = "No spaces allowed"
             break
         else:
             name_error = ""
-
-    if username is None:
-        name_error = "Please enter username"
-        username = ""
-
-    if len(username) < 3 or len(username) > 20:
-        name_error = "Username length needs to be > 3 and < 20 "
-
-    return render_template("signup.html", username=username, name_error=name_error, email=email, em_err=em_err)
+            continue
+    else:
+        name_error = ""
 
     #Verify password
-    if pw is None:
-        pw_error = "Pleast enter password"
+    if pw == "":
+        pw_error = "Please enter password"
         pw = ""
+        return render_template("signup.html", username=username, name_error=name_error, pw_error=pw_error)
+    
+    if len(pw) < 3 or len(pw) > 20:
+        pw_error = "Password must be between 3 and 20 characters"
+        pw = ""
+        return render_template("signup.html", username=username, name_error=name_error, pw_error=pw_error)
 
     if " " in pw:
         pw_error = "No spaces in password"
         pw = ""
+        return render_template("signup.html", username=username, name_error=name_error, pw_error=pw_error)
+    
     else:
         pw_error = ""
-
-    if len(pw) < 3 or len(pw) > 20:
-        pw_error = "Password length must be > 3 and < 20 characters"
-        pw = ""
-
-    else: 
-        return render_template("signup.html", username=username, name_error=name_error, pw_error=pw_error, ver_pw_error=ver_pw_error, email=email, em_err=em_err)
 
     #Verify verify-password
     if ver_pw != pw:
         ver_pw_error = "Passwords do not match" 
     else: 
-        return render_template("signup.html", username=username, name_error=name_error, pw_error=pw_error, email=email, em_err=em_err)
+        ver_pw_error = ""
     
     #Verify email
-    if " " in email:
-        em_err = "Please enter email"
-    if "@" not in email:
-        em_err = "Invalid email"
-    if "." not in email:
-        em_err = "Invalid email"
-    if len(email) < 3 or len(email) > 20:
-        em_err = "Email must be < 3 and < 20 characters"
+    if email == "":
+        em_err = ""
+        if not name_error and not pw_error and not ver_pw_error and not em_err:
+            return render_template("welcome-page.html", username=username)
 
     else:
-        return render_template("signup.html", username=username, name_error=name_error, email=email, em_err=em_err)
-
+        if len(email) < 3 or len(email) > 20:
+            em_err = "Email must be between 3 and 20 characters"
+            return render_template("signup.html", username=username, name_error=name_error, pw_error=pw_error, ver_pw_error=ver_pw_error, email=email, em_err=em_err)
+        if "@" not in email:
+            em_err = "Invalid email"
+            return render_template("signup.html", username=username, name_error=name_error, pw_error=pw_error, ver_pw_error=ver_pw_error, email=email, em_err=em_err)
+        if "." not in email:
+            em_err = "Invalid email"
+            return render_template("signup.html", username=username, name_error=name_error, pw_error=pw_error, ver_pw_error=ver_pw_error, email=email, em_err=em_err)
+    
     if not name_error and not pw_error and not ver_pw_error and not em_err:
-        return redirect("/welcome-page", username=username)
+        return render_template("welcome-page.html", username=username)
     else: 
-        return render_template("signup.html", username=username, name_error=name_error, pw_error=pw_error, email=email, em_err=em_err)
-        
-        #return signup_form.format(name_error=name_error, pw_error=pw_error, ver_pw_error=ver_pw_error, 
-        #    em_err=em_err, username=uesrname, pw=pw, ver_pw=ver_pw, email=email)
+        return render_template("signup.html", username=username, name_error=name_error, pw_error=pw_error, ver_pw_error=ver_pw_error, email=email, em_err=em_err)
 
 app.run()
